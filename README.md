@@ -1,10 +1,13 @@
 # NativeBypassCredGuard
 
-Bypass Credential Guard using only NTAPIs by patching the *g_IsCredGuardEnabled* and *g_fParameter_UseLogonCredential* values in wdigest.dll.
+NativeBypassCredGuard is a tool designed to bypass Credential Guard by patching wdigest.dll using only NTAPI functions (from ntdll.dll).
 
-It searches the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the wdigest.dll library (as explained in [itm4n's blog post from 2022](https://itm4n.github.io/credential-guard-bypass/), this works for all recent Windows versions), calculates the address in memory and patches the variables (*g_IsCredGuardEnabled* is set to 0 and *g_fParameter_UseLogonCredential* is set to 1)
+It locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the wdigest.dll file on disk (as described in [itm4n's blog post](https://itm4n.github.io/credential-guard-bypass/)), calculates the necessary memory addresses, and patches the variables *g_IsCredGuardEnabled* and *g_fParameter_UseLogonCredential* within wdigest.dll.
 
-The NTAPIs needed for this are:
+Using only NTAPI functions it is possible to remap the ntdll.dll library to bypass user-mode hooks and security mechanisms, which is an optional feature of the tool. If used, the clean ntdll.dll is obtained from a process created in debug mode.
+
+
+The NTAPI functions needed are depicted in the diagram below:
 
 ![poc](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/nativebypasscredguard/esquema.png)
 
@@ -23,20 +26,20 @@ The NTAPIs needed for this are:
 NativeBypassCredGuard <OPTION> <REMAP-NTDLL>
 ```
 
-Option (first argument):
-- 'check': Read current values.
-- 'patch': Write new values.
+Option (required):
+- **check**: Read current values.
+- **patch**: Write new values.
 
-Remap ntdll (second argument):
-- true: Remap the ntdll library.
-- false (or omitted): Do not remap the ntdll library.
+Remap ntdll (optional):
+- **true**: Remap the ntdll library.
+- **false** (or omitted): Do not remap the ntdll library.
 
 
 -------------------
 
 ## Examples
 
-Read current values without remapping the ntdll library:
+Read values (**without** ntdll remapping):
 
 ```
 NativeBypassCredGuard.exe check
@@ -45,7 +48,7 @@ NativeBypassCredGuard.exe check
 ![img1](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/nativebypasscredguard/Screenshot_1.png)
 
 
-Write new values and remap the ntdll library:
+Patch values (**with** ntdll remapping):
 
 ```
 NativeBypassCredGuard.exe patch true
@@ -58,5 +61,4 @@ NativeBypassCredGuard.exe patch true
 
 ## References
 
-- [Revisiting a Credential Guard Bypass
-](https://itm4n.github.io/credential-guard-bypass/)
+- [Revisiting a Credential Guard Bypass](https://itm4n.github.io/credential-guard-bypass/)
