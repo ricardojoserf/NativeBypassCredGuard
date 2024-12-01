@@ -1,13 +1,15 @@
 # NativeBypassCredGuard
 
-Tool designed to bypass Credential Guard by patching WDigest.dll using only NTAPI functions (functions exported by ntdll.dll).
+Tool to bypass Credential Guard by patching WDigest.dll using only NTAPI functions (functions exported by ntdll.dll).
 
-It locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDigest.dll file on disk (as described in the first blog post in the References section; this pattern is present in this file in all Windows versions), calculates the memory addresses, and patches the value of two variables within WDigest.dll: *g_fParameter_UseLogonCredential* (to 1) and *g_IsCredGuardEnabled* (to 0).
+It locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDigest.dll file on disk (as explained in the first post in the Refences section, it is present in this file for all Windows versions), then calculates the memory addresses, and finally patches the value of two variables within WDigest.dll: *g_fParameter_UseLogonCredential* (to 1) and *g_IsCredGuardEnabled* (to 0).
 
-Using only NTAPI functions, it is possible to remap the ntdll.dll library to bypass user-mode hooks and security mechanisms, which is an optional feature of the tool. If used, a clean ntdll.dll is obtained from a process created in debug mode.
+This forces plaintext credential storage in memory ensuring that from that point forward, user credentials are stored in cleartext whenever they log in and can be easily retrieved by dumping the LSASS process.
+
+Using only NTAPI functions, it is possible to remap the ntdll.dll library to bypass user-mode hooks and security mechanisms, which is an optional feature of the tool. If used, a clean ntdll.dll is obtained from a process created in debugged mode.
 
 
-The NTAPI functions needed are:
+The NTAPI functions used are:
 
 ![poc](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/nativebypasscredguard/esquema.png)
 
@@ -28,12 +30,12 @@ NativeBypassCredGuard <OPTION> <REMAP-NTDLL>
 ```
 
 **Option** (required):
-- **check**: Read current values.
-- **patch**: Write new values.
+- **check**: Read current values
+- **patch**: Write new values
 
 **Remap ntdll** (optional):
-- **true**: Remap the ntdll library.
-- **false** (or omitted): Do not remap the ntdll library.
+- **true**: Remap the ntdll library
+- **false** (or omitted): Do not remap the ntdll library
 
 
 -------------------
@@ -61,8 +63,8 @@ NativeBypassCredGuard.exe patch true
 
 ## References
 
-- [Revisiting a Credential Guard Bypass](https://itm4n.github.io/credential-guard-bypass/) by [itm4n](https://x.com/itm4n) - A great analysis from which I took the pattern to search the .text section of the DLL.
+- [Revisiting a Credential Guard Bypass](https://itm4n.github.io/credential-guard-bypass/) by [itm4n](https://x.com/itm4n) - A great analysis from which I took the pattern to search the .text section of the DLL
 
-- [WDigest: Digging the dead from the grave](https://neuralhax.github.io/wdigest-digging-the-dead-from-the-grave) by [neuralhax](https://twitter.com/neuralhax) - An amazing blog that proves it is possible to use other values for *g_fParameter_UseLogonCredential*, I didn't test it for now but you can play with its value with the variable *useLogonCredential_Value* in Program.cs.
+- [WDigest: Digging the dead from the grave](https://neuralhax.github.io/wdigest-digging-the-dead-from-the-grave) by [neuralhax](https://twitter.com/neuralhax) - An amazing blog that proves it is possible to use other values for *g_fParameter_UseLogonCredential*, I didn't test it yet but you can play with the variable *useLogonCredential_Value*
 
-- [Exploring Mimikatz - Part 1 - WDigest](https://blog.xpnsec.com/exploring-mimikatz-part-1/) by [xpn](https://x.com/_xpn_) - Blog post reverse-engineering explaining how WDigest credential caching works.
+- [Exploring Mimikatz - Part 1 - WDigest](https://blog.xpnsec.com/exploring-mimikatz-part-1/) by [xpn](https://x.com/_xpn_) - Fantastic blog post reverse-engineering and explaining WDigest credential caching
