@@ -1,6 +1,6 @@
 # NativeBypassCredGuard
 
-Tool to bypass Credential Guard by patching WDigest.dll using only NTAPI functions (functions exported by ntdll.dll), written in C# and C++.
+NativeBypassCredGuard is a tool designed to bypass Credential Guard by patching WDigest.dll using only NTAPI functions (functions exported by ntdll.dll). It is available in two flavours: C# and C++.
 
 It locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDigest.dll file on disk (as explained in the first post in the Refences section, it is present in this file for all Windows versions), then calculates the memory addresses, and finally patches the value of two variables within WDigest.dll: *g_fParameter_UseLogonCredential* (to 1) and *g_IsCredGuardEnabled* (to 0).
 
