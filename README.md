@@ -1,12 +1,10 @@
 # NativeBypassCredGuard
 
-NativeBypassCredGuard is a tool designed to bypass Credential Guard by patching WDigest.dll using only NTAPI functions (functions exported by ntdll.dll). It is available in two flavours: C# and C++.
+NativeBypassCredGuard is a tool designed to bypass Credential Guard by patching WDigest.dll using only NTAPI functions (functions exported by ntdll.dll), available in two flavours: C# and C++.
 
-It locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDigest.dll file on disk (as explained in the first post in the Refences section, it is present in this file for all Windows versions), then calculates the memory addresses, and finally patches the value of two variables within WDigest.dll: *g_fParameter_UseLogonCredential* (to 1) and *g_IsCredGuardEnabled* (to 0).
+The tool locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDigest.dll file on disk (as explained in the first post in the Refences section, it is present in this file for all Windows versions), then calculates the memory addresses, and finally patches the value of two variables within WDigest.dll: *g_fParameter_UseLogonCredential* (to 1) and *g_IsCredGuardEnabled* (to 0).
 
-This forces plaintext credential storage in memory ensuring that from that point forward, user credentials are stored in cleartext whenever they log in and can be easily retrieved by dumping the LSASS process.
-
-Using only NTAPI functions, it is possible to remap the ntdll.dll library to bypass user-mode hooks and security mechanisms, which is an optional feature of the tool. If used, a clean ntdll.dll is obtained from a process created in debugged mode.
+This forces plaintext credential storage in memory, ensuring that from that point forward credentials are stored in cleartext whenever users log in, making it possible to retrieve them by dumping the LSASS process.
 
 
 The NTAPI functions used are:
@@ -20,6 +18,7 @@ The NTAPI functions used are:
 - NtReadVirtualMemory to read the values of the variables
 - NtWriteProcessMemory to write new values to the variables
 
+Using only NTAPI functions, it is possible to remap the ntdll.dll library to bypass user-mode hooks and security mechanisms, which is an optional feature of the tool. If used, a clean version of ntdll.dll is obtained from a process created in debugged mode.
 
 -------------------
 
