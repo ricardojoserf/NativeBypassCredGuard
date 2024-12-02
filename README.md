@@ -1,15 +1,15 @@
 # NativeBypassCredGuard
 
-NativeBypassCredGuard is a tool designed to bypass Credential Guard by patching WDigest.dll using only NTAPI functions (functions exported by ntdll.dll), available in two flavours: C# and C++.
+NativeBypassCredGuard is a tool designed to bypass Credential Guard by patching WDigest.dll using only NTAPI functions (exported by ntdll.dll). It is available in two flavours: C# and C++.
 
-The tool locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDigest.dll file on disk (as explained in the first post in the Refences section, it is present in this file for all Windows versions), then calculates the memory addresses, and finally patches the value of two variables within WDigest.dll: *g_fParameter_UseLogonCredential* (to 1) and *g_IsCredGuardEnabled* (to 0).
+The tool locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDigest.dll file on disk (as explained in the first post in the Refences section, the pattern is present in this file in all Windows versions), then calculates the necessary memory addresses, and finally patches the value of two variables within WDigest.dll: *g_fParameter_UseLogonCredential* (to 1) and *g_IsCredGuardEnabled* (to 0).
 
-This forces plaintext credential storage in memory, ensuring that from that point forward credentials are stored in cleartext whenever users log in, making it possible to retrieve them by dumping the LSASS process.
+This forces plaintext credential storage in memory, ensuring that from that point forward credentials are stored in cleartext whenever users log in. As a result, next time the LSASS process is dumped it may contain passwords in plaintext.
 
-
-![poc](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/nativebypasscredguard/esquema.png)
 
 The NTAPI functions used are:
+
+![poc](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/nativebypasscredguard/esquema.png)
 
 - NtOpenProcessToken and NtAdjustPrivilegesToken to enable the SeDebugPrivilege privilege
 - NtCreateFile and NtReadFile to open a handle to the DLL file on disk and read its bytes
