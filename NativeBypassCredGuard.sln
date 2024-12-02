@@ -3,29 +3,49 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34616.47
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeBypassCredGuard", "NativeBypassCredGuard\NativeBypassCredGuard.csproj", "{CAAA2E54-7025-4536-8FFE-B9CFECC1668D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeBypassCredGuard_C#", "NativeBypassCredGuard_C#\NativeBypassCredGuard_C#.csproj", "{E383DFEA-EC22-4667-9434-3F2591A03740}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeBypassCredGuard_C++", "NativeBypassCredGuard_C++\NativeBypassCredGuard_C++.vcxproj", "{C4D31433-5017-4B5E-956B-8A540520986C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CAAA2E54-7025-4536-8FFE-B9CFECC1668D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CAAA2E54-7025-4536-8FFE-B9CFECC1668D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CAAA2E54-7025-4536-8FFE-B9CFECC1668D}.Debug|x64.ActiveCfg = Debug|x64
-		{CAAA2E54-7025-4536-8FFE-B9CFECC1668D}.Debug|x64.Build.0 = Debug|x64
-		{CAAA2E54-7025-4536-8FFE-B9CFECC1668D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CAAA2E54-7025-4536-8FFE-B9CFECC1668D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CAAA2E54-7025-4536-8FFE-B9CFECC1668D}.Release|x64.ActiveCfg = Release|x64
-		{CAAA2E54-7025-4536-8FFE-B9CFECC1668D}.Release|x64.Build.0 = Release|x64
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Debug|x64.ActiveCfg = Debug|x64
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Debug|x64.Build.0 = Debug|x64
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Debug|x86.Build.0 = Debug|Any CPU
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Release|x64.ActiveCfg = Release|x64
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Release|x64.Build.0 = Release|x64
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Release|x86.ActiveCfg = Release|Any CPU
+		{E383DFEA-EC22-4667-9434-3F2591A03740}.Release|x86.Build.0 = Release|Any CPU
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Debug|Any CPU.Build.0 = Debug|x64
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Debug|x64.ActiveCfg = Debug|x64
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Debug|x64.Build.0 = Debug|x64
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Debug|x86.ActiveCfg = Debug|Win32
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Debug|x86.Build.0 = Debug|Win32
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Release|Any CPU.ActiveCfg = Release|x64
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Release|Any CPU.Build.0 = Release|x64
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Release|x64.ActiveCfg = Release|x64
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Release|x64.Build.0 = Release|x64
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Release|x86.ActiveCfg = Release|Win32
+		{C4D31433-5017-4B5E-956B-8A540520986C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {6E49DF0A-8D0E-4C38-A5A1-BC2A89CC40E7}
+		SolutionGuid = {FD121379-6CFF-4743-8A02-4151B0571711}
 	EndGlobalSection
 EndGlobal
