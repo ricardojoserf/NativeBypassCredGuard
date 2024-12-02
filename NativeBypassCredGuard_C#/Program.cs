@@ -460,7 +460,7 @@ namespace NativeBypassCredGuard
                 }
                 else {
                     if (debug) {
-                        Console.WriteLine($"[+] Lsass Handle:\t\t%d", lsassHandle);
+                        Console.WriteLine($"[+] Lsass Handle:\t\t{lsassHandle}");
                     }
                 }
 
