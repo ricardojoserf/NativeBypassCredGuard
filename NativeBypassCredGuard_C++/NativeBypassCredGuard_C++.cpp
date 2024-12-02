@@ -421,7 +421,7 @@ static bool OpenFile(const wchar_t* filePath, HANDLE* fileHandle) {
     IO_STATUS_BLOCK ioStatusBlock;
     NTSTATUS status = NtCreateFile(
         fileHandle,
-        0x00120089,
+        FILE_READ_DATA | FILE_READ_ATTRIBUTES,
         &objectAttributes,
         &ioStatusBlock,
         NULL,

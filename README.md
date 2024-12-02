@@ -7,9 +7,9 @@ The tool locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDiges
 This forces plaintext credential storage in memory, ensuring that from that point forward credentials are stored in cleartext whenever users log in, making it possible to retrieve them by dumping the LSASS process.
 
 
-The NTAPI functions used are:
-
 ![poc](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/nativebypasscredguard/esquema.png)
+
+The NTAPI functions used are:
 
 - NtOpenProcessToken and NtAdjustPrivilegesToken to enable the SeDebugPrivilege privilege
 - NtCreateFile and NtReadFile to open a handle to the DLL file on disk and read its bytes
@@ -19,6 +19,7 @@ The NTAPI functions used are:
 - NtWriteProcessMemory to write new values to the variables
 
 Using only NTAPI functions, it is possible to remap the ntdll.dll library to bypass user-mode hooks and security mechanisms, which is an optional feature of the tool. If used, a clean version of ntdll.dll is obtained from a process created in debugged mode.
+
 
 -------------------
 
@@ -57,6 +58,8 @@ NativeBypassCredGuard.exe patch true
 ```
 
 ![img2](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/nativebypasscredguard/Screenshot_2.png)
+
+
 
 -------------------
 
