@@ -26,7 +26,7 @@ Using only NTAPI functions, it is possible to remap the ntdll.dll library to byp
 ## Usage
 
 ```
-NativeBypassCredGuard <OPTION> <REMAP-NTDLL>
+NativeBypassCredGuard.exe <OPTION> <REMAP-NTDLL>
 ```
 
 **Option** (required):
