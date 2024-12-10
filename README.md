@@ -2,7 +2,7 @@
 
 NativeBypassCredGuard is a tool designed to bypass Credential Guard by patching WDigest.dll using only NTAPI functions (exported by ntdll.dll). It is available in two flavours: C# and C++.
 
-The tool locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDigest.dll file on disk (as explained in the first post in the Refences section, the pattern is present in this file in all Windows versions), then calculates the necessary memory addresses, and finally patches the value of two variables within WDigest.dll: *g_fParameter_UseLogonCredential* (to 1) and *g_IsCredGuardEnabled* (to 0).
+The tool locates the pattern "39 ?? ?? ?? ?? 00 8b ?? ?? ?? ?? 00" in the WDigest.dll file on disk (as explained in the first post in the References section, the pattern is present in this file in all Windows versions), then calculates the necessary memory addresses, and finally patches the value of two variables within WDigest.dll: *g_fParameter_UseLogonCredential* (to 1) and *g_IsCredGuardEnabled* (to 0).
 
 This forces plaintext credential storage in memory, ensuring that from that point forward credentials are stored in cleartext whenever users log in. As a result, next time the LSASS process is dumped it may contain passwords in plaintext.
 
@@ -69,6 +69,8 @@ NativeBypassCredGuard.exe patch true
 
 - It will not work if it is not possible to open a handle to lsass or if the PEB structure is not readable. Regarding the latter you can opt for using kernel32!LoadLibrary for loading WDigest.dll in your process to get its base address, instead of using ntdll!NtReadVirtualMemory and ntdll!NtQueryInformationProcess to get it from the lsass process (you have the code for this commented in the C version). But you would be using a function not exported by ntdll.dll but kernel32.dll, and it is probably strange for a process to load that DLL :)
 
+- [0x3rhy](https://github.com/0x3rhy) has created a BOF file based on this project: [BypassCredGuard-BOF](https://github.com/0x3rhy/BypassCredGuard-BOF)
+
 
 -------------------
 
@@ -79,5 +81,3 @@ NativeBypassCredGuard.exe patch true
 - [WDigest: Digging the dead from the grave](https://neuralhax.github.io/wdigest-digging-the-dead-from-the-grave) by [neuralhax](https://twitter.com/neuralhax) - An amazing blog that proves it is possible to use other values for *g_fParameter_UseLogonCredential*, I didn't test it yet but you can play with the variable *useLogonCredential_Value*
 
 - [Exploring Mimikatz - Part 1 - WDigest](https://blog.xpnsec.com/exploring-mimikatz-part-1/) by [xpn](https://x.com/_xpn_) - Fantastic blog post reverse-engineering and explaining WDigest credential caching
-
-
