@@ -467,8 +467,8 @@ static bool OpenFile(const wchar_t* filePath, HANDLE* fileHandle) {
 
 void initializeFunctions() {
     HMODULE hNtdll = LoadLibraryA("ntdll.dll");
-    NtQueryInformationProcess = (NtQueryInformationProcessFn)GetProcAddress(hNtdll, "NtQueryInformationProcess");
     NtReadVirtualMemory = (NtReadVirtualMemoryFn)GetProcAddress((HMODULE)hNtdll, "NtReadVirtualMemory");
+    NtQueryInformationProcess = (NtQueryInformationProcessFn)CustomGetProcAddress(hNtdll, "NtQueryInformationProcess");
     NtClose = (NtCloseFn)CustomGetProcAddress(hNtdll, "NtClose");
     NtOpenProcessToken = (NtOpenProcessTokenFn)CustomGetProcAddress(hNtdll, "NtOpenProcessToken");
     NtAdjustPrivilegesToken = (NtAdjustPrivilegesTokenFn)CustomGetProcAddress(hNtdll, "NtAdjustPrivilegesToken");
