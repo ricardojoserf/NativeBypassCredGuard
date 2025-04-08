@@ -18,7 +18,7 @@ The NTAPI functions used are:
 - NtReadVirtualMemory to read the values of the variables
 - NtWriteProcessMemory to write new values to the variables
 
-Using only NTAPI functions, it is possible to remap the ntdll.dll library to bypass user-mode hooks and security mechanisms, which is an optional feature of the tool. If used, a clean version of ntdll.dll is obtained from a process created in debugged mode.
+Using only NTAPI functions, it is possible to remap the ntdll.dll library to bypass user-mode hooks and security mechanisms, which is an optional feature of the tool. If used, a clean version of ntdll.dll is obtained from a process created in suspended mode.
 
 
 -------------------
